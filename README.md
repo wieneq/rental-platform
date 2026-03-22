@@ -213,3 +213,5 @@ MIT License
 ---
 
 **展示平台** | 2026 © Rental Platform
+
+🚀 已部署到 Vercel
