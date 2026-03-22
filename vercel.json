@@ -12,16 +12,8 @@
       "dest": "/server.js"
     },
     {
-      "src": "/(.*\\..+)",
-      "dest": "/public/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
-  ],
-  "env": {
-    "SESSION_SECRET": "@session-secret",
-    "NODE_ENV": "production"
-  }
+  ]
 }
