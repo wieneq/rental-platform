@@ -39,16 +39,23 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// 處理所有 HTML 頁面
+app.get('/*.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', req.path));
+});
+
 // 錯誤處理
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: '伺服器錯誤', message: err.message });
 });
 
-// 啟動伺服器
-app.listen(PORT, () => {
-  console.log(`🚀 共享器材租賃管理平台運行於 http://localhost:${PORT}`);
-  console.log(`📚 展示版本 - 使用記憶體儲存 (Vercel 部署用)`);
-});
+// 啟動伺服器 (只在本地環境)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 共享器材租賃管理平台運行於 http://localhost:${PORT}`);
+    console.log(`📚 展示版本 - 使用記憶體儲存 (Vercel 部署用)`);
+  });
+}
 
 module.exports = app;
