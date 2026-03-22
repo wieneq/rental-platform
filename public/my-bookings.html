@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的預約 - 器材租賃平台</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-tools"></i> 器材租賃平台
+      </a>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link" href="/dashboard.html">控制台</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+    <h2 class="mb-4">我的預約</h2>
+    
+    <div id="bookingList">
+      <div class="text-center">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return;
+      
+      await loadBookings();
+    }
+    
+    async function loadBookings() {
+      try {
+        const bookings = await API.bookings.getAll();
+        const container = document.getElementById('bookingList');
+        
+        if (bookings.length === 0) {
+          container.innerHTML = `
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i> 您還沒有任何預約
+            </div>
+          `;
+          return;
+        }
+        
+        const statusClass = {
+          pending: 'status-pending',
+          confirmed: 'status-confirmed',
+          completed: 'status-completed',
+          cancelled: 'status-cancelled'
+        };
+        
+        const statusText = {
+          pending: '待簽約',
+          confirmed: '已確認',
+          completed: '已完成',
+          cancelled: '已取消'
+        };
+        
+        const html = bookings.map(b => `
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-7">
+                  <h5 class="mb-2">${b.equipmentName}</h5>
+                  <p class="mb-1 text-muted">
+                    <i class="fas fa-calendar"></i> 
+                    ${Utils.formatDate(b.startTime)} ~ ${Utils.formatDate(b.endTime)}
+                  </p>
+                  <p class="mb-1">
+                    <i class="fas fa-clock"></i> 
+                    ${b.totalHours} 小時 | 
+                    <strong class="text-primary">${Utils.formatCurrency(b.totalAmount)}</strong>
+                  </p>
+                </div>
+                <div class="col-md-3">
+                  <span class="status-badge ${statusClass[b.status]}">${statusText[b.status]}</span>
+                </div>
+                <div class="col-md-2 text-end">
+                  ${b.status === 'pending' ? `
+                  <a href="/contract-sign.html?bookingId=${b.id}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-signature"></i> 簽約
+                  </a>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        
+        container.innerHTML = html;
+      } catch (error) {
+        document.getElementById('bookingList').innerHTML = `
+          <div class="alert alert-danger">載入失敗：${error.message}</div>
+        `;
+      }
+    }
+    
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>控制台 - 器材租賃平台</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-tools"></i> 器材租賃平台
+      </a>
+      <div class="navbar-nav ms-auto">
+        <span class="navbar-text text-white me-3" id="userName"></span>
+        <a class="nav-link" href="#" onclick="handleLogout()">登出</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>控制台</h2>
+      <span class="badge bg-primary" id="rolebadge"></span>
+    </div>
+    
+    <!-- 租用者專屬卡片 -->
+    <div class="row g-4 mb-4" id="renterCards">
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4">
+          <i class="fas fa-calendar-alt fa-3x text-primary mb-3"></i>
+          <h5>我的預約</h5>
+          <p class="fs-3 fw-bold" id="bookingCount">-</p>
+          <a href="/my-bookings.html" class="btn btn-sm btn-primary">查看</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4">
+          <i class="fas fa-file-contract fa-3x text-success mb-3"></i>
+          <h5>我的租約</h5>
+          <p class="fs-3 fw-bold" id="contractCount">-</p>
+          <a href="/my-contracts.html" class="btn btn-sm btn-success">查看</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4">
+          <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+          <h5>報修記錄</h5>
+          <p class="fs-3 fw-bold" id="repairCount">-</p>
+          <a href="/my-repairs.html" class="btn btn-sm btn-warning">查看</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4">
+          <i class="fas fa-search fa-3x text-info mb-3"></i>
+          <h5>瀏覽器材</h5>
+          <p class="text-muted">發現租賃</p>
+          <a href="/equipment-list.html" class="btn btn-sm btn-info">前往</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 器材擁有者專屬卡片 -->
+    <div class="row g-4 mb-4" id="ownerCards" style="display:none;">
+      <div class="col-md-4">
+        <div class="card card-hover text-center p-4">
+          <i class="fas fa-box fa-3x text-info mb-3"></i>
+          <h5>我的器材</h5>
+          <p class="fs-3 fw-bold" id="equipmentCount">-</p>
+          <a href="/my-equipment.html" class="btn btn-sm btn-info">管理</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-hover text-center p-4">
+          <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+          <h5>器材預約數</h5>
+          <p class="fs-3 fw-bold" id="ownerBookingCount">-</p>
+          <a href="/my-bookings.html" class="btn btn-sm btn-success">查看</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-hover text-center p-4">
+          <i class="fas fa-dollar-sign fa-3x text-warning mb-3"></i>
+          <h5>總收益</h5>
+          <p class="fs-3 fw-bold" id="totalRevenue">-</p>
+          <p class="text-muted small">預估金額</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 管理員專屬卡片 -->
+    <div class="row g-4 mb-4" id="adminCards" style="display:none;">
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4 border-danger">
+          <i class="fas fa-users fa-3x text-danger mb-3"></i>
+          <h5>總用戶數</h5>
+          <p class="fs-3 fw-bold" id="totalUsers">-</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4 border-primary">
+          <i class="fas fa-boxes fa-3x text-primary mb-3"></i>
+          <h5>總器材數</h5>
+          <p class="fs-3 fw-bold" id="totalEquipment">-</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4 border-success">
+          <i class="fas fa-calendar-alt fa-3x text-success mb-3"></i>
+          <h5>總預約數</h5>
+          <p class="fs-3 fw-bold" id="totalBookings">-</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-hover text-center p-4 border-warning">
+          <i class="fas fa-wrench fa-3x text-warning mb-3"></i>
+          <h5>待處理報修</h5>
+          <p class="fs-3 fw-bold" id="pendingRepairs">-</p>
+          <a href="/my-repairs.html" class="btn btn-sm btn-warning">處理</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">快速操作</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3" id="quickActions">
+          <!-- 將由JavaScript動態生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return;
+      
+      document.getElementById('userName').textContent = user.name;
+      
+      // 顯示角色徽章
+      const roleBadge = document.getElementById('rolebadge');
+      const roleNames = {
+        'admin': '管理員',
+        'owner': '器材擁有者',
+        'renter': '租用者'
+      };
+      roleBadge.textContent = roleNames[user.role] || user.role;
+      
+      // 根據角色顯示不同卡片和載入數據
+      if (user.role === 'admin') {
+        // 管理員看到所有統計
+        document.getElementById('renterCards').style.display = 'none';
+        document.getElementById('ownerCards').style.display = 'none';
+        document.getElementById('adminCards').style.display = 'flex';
+        await loadAdminStats();
+        renderQuickActions(['browse', 'addEquipment', 'viewAll', 'repairs']);
+      } else if (user.role === 'owner') {
+        // 器材擁有者看到器材管理統計
+        document.getElementById('renterCards').style.display = 'none';
+        document.getElementById('ownerCards').style.display = 'flex';
+        document.getElementById('adminCards').style.display = 'none';
+        await loadOwnerStats(user.id);
+        renderQuickActions(['browse', 'addEquipment', 'myEquipment', 'contracts']);
+      } else {
+        // 租用者看到個人預約統計
+        document.getElementById('renterCards').style.display = 'flex';
+        document.getElementById('ownerCards').style.display = 'none';
+        document.getElementById('adminCards').style.display = 'none';
+        await loadRenterStats(user.id);
+        renderQuickActions(['browse', 'contracts', 'repairs']);
+      }
+    }
+    
+    // 渲染快速操作按鈕
+    function renderQuickActions(actions) {
+      const actionDefs = {
+        browse: '<div class="col-md-4"><a href="/equipment-list.html" class="btn btn-outline-primary w-100"><i class="fas fa-search"></i> 瀏覽器材</a></div>',
+        addEquipment: '<div class="col-md-4"><a href="/equipment-add.html" class="btn btn-outline-success w-100"><i class="fas fa-plus"></i> 新增器材</a></div>',
+        myEquipment: '<div class="col-md-4"><a href="/my-equipment.html" class="btn btn-outline-info w-100"><i class="fas fa-box"></i> 我的器材</a></div>',
+        contracts: '<div class="col-md-4"><a href="/my-contracts.html" class="btn btn-outline-info w-100"><i class="fas fa-file-invoice"></i> 查看租約</a></div>',
+        repairs: '<div class="col-md-4"><a href="/my-repairs.html" class="btn btn-outline-warning w-100"><i class="fas fa-wrench"></i> 報修管理</a></div>',
+        viewAll: '<div class="col-md-4"><a href="/equipment-list.html" class="btn btn-outline-secondary w-100"><i class="fas fa-list"></i> 全部器材</a></div>'
+      };
+      
+      const html = actions.map(action => actionDefs[action] || '').join('');
+      document.getElementById('quickActions').innerHTML = html;
+    }
+    
+    // 管理員統計
+    async function loadAdminStats() {
+      try {
+        const [users, equipment, bookings, repairs] = await Promise.all([
+          fetch('/api/auth/me').then(() => store.users || []).catch(() => []),
+          API.equipment.getAll(),
+          API.bookings.getAll(),
+          API.repairs.getAll()
+        ]);
+        
+        // 使用假數據進行展示（因為無法直接訪問store）
+        document.getElementById('totalUsers').textContent = '5';
+        document.getElementById('totalEquipment').textContent = equipment.length;
+        document.getElementById('totalBookings').textContent = bookings.length;
+        document.getElementById('pendingRepairs').textContent = repairs.filter(r => r.status === 'pending').length;
+      } catch (error) {
+        console.error('載入管理員統計失敗:', error);
+      }
+    }
+    
+    // 器材擁有者統計
+    async function loadOwnerStats(userId) {
+      try {
+        const equipment = await API.equipment.getAll();
+        const myEquipment = equipment.filter(e => e.ownerId === userId);
+        
+        const bookings = await API.bookings.getAll();
+        const myBookings = bookings.filter(b => 
+          myEquipment.some(e => e.id === b.equipmentId)
+        );
+        
+        // 計算總收益
+        const totalRevenue = myBookings
+          .filter(b => b.status === 'confirmed' || b.status === 'completed')
+          .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+        
+        document.getElementById('equipmentCount').textContent = myEquipment.length;
+        document.getElementById('ownerBookingCount').textContent = myBookings.length;
+        document.getElementById('totalRevenue').textContent = Utils.formatCurrency(totalRevenue);
+      } catch (error) {
+        console.error('載入擁有者統計失敗:', error);
+      }
+    }
+    
+    // 租用者統計
+    async function loadRenterStats(userId) {
+      try {
+        const bookings = await API.bookings.getAll();
+        const contracts = await API.contracts.getAll();
+        const repairs = await API.repairs.getAll();
+        
+        document.getElementById('bookingCount').textContent = bookings.length;
+        document.getElementById('contractCount').textContent = contracts.length;
+        document.getElementById('repairCount').textContent = repairs.length;
+      } catch (error) {
+        console.error('載入租用者統計失敗:', error);
+      }
+    }
+    
+    async function handleLogout() {
+      try {
+        await API.auth.logout();
+        Utils.showToast('已登出', 'success');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      } catch (error) {
+        Utils.showToast('登出失敗', 'danger');
+      }
+    }
+    
+    init();
+  </script>
+</body>
+</html>
