@@ -7,18 +7,27 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 中介層設定
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
+// 信任 Vercel 反向代理
+app.set('trust proxy', 1);
+
 // Session 設定
 app.use(session({
   secret: process.env.SESSION_SECRET || 'rental-platform-secret-key-2026',
-  resave: false,
-  saveUninitialized: false,
+  resave: true,
+  saveUninitialized: true,
+  proxy: true,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Vercel 環境設為 false
+    httpOnly: true,
+    sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000 // 24 小時
   }
 }));
