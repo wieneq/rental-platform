@@ -58,6 +58,9 @@
   <script>
     let equipment = null;
     let calendar = null;
+    let selectedSlot = null; // 儲存選擇的時段
+    let startTime = null; // 儲存開始時間
+    let tempEvent = null; // 臨時標記事件
     const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
     
     async function init() {
@@ -109,12 +112,29 @@
         <hr class="my-5">
         
         <h3 class="mb-4">預約時段</h3>
+        <div class="alert alert-warning mb-3" id="clickHint" style="display:block;">
+          <i class="fas fa-hand-pointer"></i> 請先點擊<strong>開始時間</strong>，再點擊<strong>結束時間</strong>
+        </div>
+        <div class="alert alert-info mb-3" id="selectedTimeInfo" style="display:none;">
+          <i class="fas fa-info-circle"></i> <span id="selectedTimeText"></span>
+        </div>
         <div class="calendar-container">
           <div id="calendar"></div>
+        </div>
+        <div class="text-center mt-3">
+          <button class="btn btn-secondary btn-lg me-2" id="resetBtn" onclick="resetSelection()">
+            <i class="fas fa-redo"></i> 重新選擇
+          </button>
+          <button class="btn btn-success btn-lg" id="confirmBookingBtn" disabled>
+            <i class="fas fa-check-circle"></i> 確認預約此時段
+          </button>
         </div>
       `;
       
       document.getElementById('equipmentDetail').innerHTML = html;
+      
+      // 在 DOM 更新後綁定事件
+      document.getElementById('confirmBookingBtn').addEventListener('click', confirmAndOpenModal);
     }
     
     async function initCalendar() {
@@ -131,24 +151,121 @@
         locale: 'zh-tw',
         slotMinTime: '08:00:00',
         slotMaxTime: '22:00:00',
+        slotDuration: '01:00:00',
         allDaySlot: false,
-        selectable: true,
-        selectMirror: true,
+        selectable: false,
+        editable: false,
         events: bookings.map(b => ({
           title: '已預約',
           start: b.startTime,
           end: b.endTime,
-          color: '#e74c3c'
+          color: '#e74c3c',
+          extendedProps: {
+            type: 'booked'
+          }
         })),
-        select: function(info) {
-          document.getElementById('startTime').value = formatDateTimeLocal(info.start);
-          document.getElementById('endTime').value = formatDateTimeLocal(info.end);
-          calculatePrice();
-          openBookingModal();
+        dateClick: function(info) {
+          handleTimeSlotClick(info.date, info.jsEvent);
         }
       });
       
       calendar.render();
+    }
+    
+    function handleTimeSlotClick(clickedDate) {
+      // 確保點擊的時間是整點
+      const roundedDate = new Date(clickedDate);
+      roundedDate.setMinutes(0, 0, 0);
+      
+      if (!startTime) {
+        // 第一次點擊：設置開始時間
+        startTime = roundedDate;
+        
+        // 在日曆上添加臨時標記
+        if (tempEvent) {
+          tempEvent.remove();
+        }
+        tempEvent = calendar.addEvent({
+          title: '開始',
+          start: startTime,
+          end: new Date(startTime.getTime() + 60 * 60 * 1000), // +1小時
+          color: '#3498db',
+          extendedProps: {
+            type: 'temp-start'
+          }
+        });
+        
+        // 更新提示訊息
+        const startStr = formatDateTimeDisplay(startTime);
+        document.getElementById('clickHint').innerHTML = 
+          `<i class="fas fa-hand-pointer"></i> 已選擇開始時間：<strong>${startStr}</strong>，請點擊<strong>結束時間</strong>`;
+        document.getElementById('selectedTimeInfo').style.display = 'none';
+        document.getElementById('confirmBookingBtn').disabled = true;
+        
+      } else {
+        // 第二次點擊：設置結束時間
+        const endTime = new Date(roundedDate.getTime() + 60 * 60 * 1000); // 結束時間加1小時（包含該時段）
+        
+        // 驗證結束時間必須晚於開始時間
+        if (endTime <= startTime) {
+          Utils.showToast('結束時間必須晚於開始時間，請重新選擇', 'warning');
+          resetSelection();
+          return;
+        }
+        
+        // 儲存選擇的時段
+        selectedSlot = {
+          start: startTime,
+          end: endTime
+        };
+        
+        // 計算小時數
+        const hours = Math.ceil((endTime - startTime) / (1000 * 60 * 60));
+        
+        // 更新臨時事件顯示完整時段
+        if (tempEvent) {
+          tempEvent.remove();
+        }
+        tempEvent = calendar.addEvent({
+          title: `選擇: ${hours}小時`,
+          start: startTime,
+          end: endTime,
+          color: '#2ecc71',
+          extendedProps: {
+            type: 'temp-selected'
+          }
+        });
+        
+        // 更新提示訊息
+        const startStr = formatDateTimeDisplay(startTime);
+        const endStr = formatDateTimeDisplay(endTime);
+        document.getElementById('clickHint').style.display = 'none';
+        document.getElementById('selectedTimeInfo').style.display = 'block';
+        document.getElementById('selectedTimeText').innerHTML = 
+          `已選擇時段：<strong>${startStr}</strong> 至 <strong>${endStr}</strong> (${hours} 小時)`;
+        
+        // 啟用確認按鈕
+        document.getElementById('confirmBookingBtn').disabled = false;
+        
+        // 重置開始時間，準備下次選擇
+        startTime = null;
+      }
+    }
+    
+    function resetSelection() {
+      startTime = null;
+      selectedSlot = null;
+      
+      if (tempEvent) {
+        tempEvent.remove();
+        tempEvent = null;
+      }
+      
+      document.getElementById('clickHint').style.display = 'block';
+      document.getElementById('clickHint').innerHTML = 
+        `<i class="fas fa-hand-pointer"></i> 請先點擊<strong>開始時間</strong>，再點擊<strong>結束時間</strong>`;
+      document.getElementById('selectedTimeInfo').style.display = 'none';
+      document.getElementById('confirmBookingBtn').disabled = true;
     }
     
     async function openBookingModal() {
@@ -179,6 +296,31 @@
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
       return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+    
+    function formatDateTimeDisplay(date) {
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${month}/${day} ${hours}:${minutes}`;
+    }
+    
+    async function confirmAndOpenModal() {
+      console.log('confirmAndOpenModal 被呼叫', selectedSlot);
+      
+      if (!selectedSlot) {
+        Utils.showToast('請先在日曆上選擇時段', 'warning');
+        return;
+      }
+      
+      // 將選擇的時段填入表單
+      document.getElementById('startTime').value = formatDateTimeLocal(selectedSlot.start);
+      document.getElementById('endTime').value = formatDateTimeLocal(selectedSlot.end);
+      calculatePrice();
+      
+      // 打開預約對話框
+      await openBookingModal();
     }
     
     function calculatePrice() {
@@ -227,6 +369,9 @@
         
         Utils.showToast('預約成功！', 'success');
         bookingModal.hide();
+        
+        // 重置選擇
+        resetSelection();
         
         // 導向簽約頁面
         setTimeout(() => {

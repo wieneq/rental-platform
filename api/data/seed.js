@@ -135,6 +135,10 @@ function seedData() {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const dayAfterTomorrow = new Date(now);
   dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const twoDaysAgo = new Date(now);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
   
   store.bookings = [
     {
@@ -158,6 +162,28 @@ function seedData() {
       totalAmount: 2400,
       status: 'confirmed',
       createdAt: new Date()
+    },
+    {
+      id: store.getNextId('bookings'),
+      equipmentId: 2,
+      userId: 4,
+      startTime: new Date(yesterday.setHours(10, 0, 0, 0)),
+      endTime: new Date(yesterday.setHours(16, 0, 0, 0)),
+      totalHours: 6,
+      totalAmount: 4800,
+      status: 'completed',
+      createdAt: new Date(twoDaysAgo)
+    },
+    {
+      id: store.getNextId('bookings'),
+      equipmentId: 4,
+      userId: 5,
+      startTime: new Date(twoDaysAgo.setHours(14, 0, 0, 0)),
+      endTime: new Date(twoDaysAgo.setHours(18, 0, 0, 0)),
+      totalHours: 4,
+      totalAmount: 2400,
+      status: 'completed',
+      createdAt: new Date(twoDaysAgo)
     }
   ];
   

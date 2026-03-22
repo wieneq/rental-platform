@@ -34,7 +34,7 @@
               <hr class="my-4">
               <h4 class="mb-3">請在下方簽名</h4>
               <div class="text-center mb-3">
-                <canvas id="signaturePad" class="signature-pad-canvas" width="600" height="200"></canvas>
+                <canvas id="signaturePad" class="signature-pad-canvas"></canvas>
               </div>
               <div class="text-center mb-4">
                 <button class="btn btn-secondary me-2" onclick="clearSignature()">
@@ -145,21 +145,43 @@
     
     function initSignaturePad() {
       const canvas = document.getElementById('signaturePad');
+      
+      // 響應式調整畫布大小
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        const containerWidth = container.offsetWidth;
+        
+        // 設置畫布的實際顯示尺寸
+        const maxWidth = Math.min(containerWidth - 20, 600); // 最大 600px，但不超過容器寬度
+        const height = Math.max(150, Math.min(200, maxWidth / 3)); // 高度根據寬度調整
+        
+        canvas.style.width = maxWidth + 'px';
+        canvas.style.height = height + 'px';
+        
+        // 設置畫布的實際像素密度
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = maxWidth * ratio;
+        canvas.height = height * ratio;
+        
+        const context = canvas.getContext('2d');
+        context.scale(ratio, ratio);
+        
+        // 如果 signaturePad 已初始化，清除並重置
+        if (signaturePad) {
+          signaturePad.clear();
+        }
+      }
+      
+      // 初始化 SignaturePad
       signaturePad = new SignaturePad(canvas, {
         backgroundColor: 'rgb(255, 255, 255)',
         penColor: 'rgb(0, 0, 0)'
       });
       
-      // 響應式調整
-      function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext('2d').scale(ratio, ratio);
-        signaturePad.clear();
-      }
-      
+      // 監聽視窗大小變化
       window.addEventListener('resize', resizeCanvas);
+      
+      // 初始化時調整大小
       resizeCanvas();
     }
     
